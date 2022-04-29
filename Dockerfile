@@ -20,7 +20,7 @@ FROM debian:buster-slim
 WORKDIR /usr/app/
 
 # Copy the executable
-RUN apt-get update && apt-get install -y libssl1.1 ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libssl1.1 ca-certificates sqlite3 && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /shut2/target/release/shut2 /usr/app/
 
 # Start command
