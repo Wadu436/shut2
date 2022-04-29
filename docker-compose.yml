@@ -3,6 +3,11 @@ services:
   bot:
     image: shut2
     build: .
+    volumes:
+      -appdata:data
     env_file:
       - .env
     network_mode: host
+
+volumes:
+  appdata:
