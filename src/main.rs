@@ -169,9 +169,9 @@ async fn normal_message(ctx: &Context, msg: &Message) {
     // Delete the message
     msg.delete(&ctx).await.unwrap();
 
-    let reply_msg = msg.channel_id.say(&ctx, "SHUT!").await.unwrap();
+    let reply_msg = msg.channel_id.say(&ctx, format!("{} SHUT!", msg.author.mention())).await.unwrap();
 
-    tokio::time::sleep(Duration::from_secs(5)).await;
+    tokio::time::sleep(Duration::from_secs(3)).await;
 
     reply_msg.delete(&ctx).await.unwrap();
 }
