@@ -81,6 +81,8 @@ impl TypeMapKey for Settings {
 
 #[group]
 #[commands(toggle_channel)]
+#[only_in(guilds)]
+#[required_permissions(ADMINISTRATOR)]
 struct General;
 
 struct Handler;
