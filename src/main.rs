@@ -1,5 +1,8 @@
 use dotenv::dotenv;
 
+use lazy_static::lazy_static;
+use regex::Regex;
+
 use serenity::async_trait;
 use serenity::client::{Client, Context, EventHandler};
 use serenity::framework::standard::{macros::*, CommandResult};
@@ -59,13 +62,17 @@ impl Settings {
     fn toggle_channel(&mut self, channel: ChannelId) -> bool {
         let conn_lock = self.connection.lock().unwrap();
         if self.banned_channels.remove(&channel) {
-            let mut statement = conn_lock.prepare("DELETE FROM banned_channels WHERE channel_id = ?").unwrap();
+            let mut statement = conn_lock
+                .prepare("DELETE FROM banned_channels WHERE channel_id = ?")
+                .unwrap();
             statement.bind(1, channel.0 as i64).unwrap();
             statement.next().unwrap();
 
             return true;
         } else {
-            let mut statement = conn_lock.prepare("INSERT INTO banned_channels VALUES (?)").unwrap();
+            let mut statement = conn_lock
+                .prepare("INSERT INTO banned_channels VALUES (?)")
+                .unwrap();
             statement.bind(1, channel.0 as i64).unwrap();
             statement.next().unwrap();
 
@@ -117,7 +124,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN").expect("token");
     let mut client = Client::builder(
         token,
-        GatewayIntents::GUILDS | GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT | GatewayIntents::GUILD_PRESENCES | GatewayIntents::GUILD_MEMBERS ,
+        GatewayIntents::GUILDS
+            | GatewayIntents::GUILD_MESSAGES
+            | GatewayIntents::MESSAGE_CONTENT
+            | GatewayIntents::GUILD_PRESENCES
+            | GatewayIntents::GUILD_MEMBERS,
     )
     .framework(framework)
     .event_handler(Handler)
@@ -144,8 +155,14 @@ async fn normal_message(ctx: &Context, msg: &Message) {
         return;
     }
 
-    // More than 1 attachment or embed
-    if msg.attachments.len() + msg.embeds.len() > 0 {
+    // Hyperlink regex
+    lazy_static! {
+        static ref LINK_RE: Regex = Regex::new(r#"https?://(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&/=]*)"#).unwrap();
+    }
+    let link = LINK_RE.is_match(&msg.content);
+
+    // More than 1 attachment or link
+    if link || msg.attachments.len() > 0 {
         return;
     }
 
@@ -171,7 +188,11 @@ async fn normal_message(ctx: &Context, msg: &Message) {
     // Delete the message
     msg.delete(&ctx).await.unwrap();
 
-    let reply_msg = msg.channel_id.say(&ctx, format!("{} SHUT!", msg.author.mention())).await.unwrap();
+    let reply_msg = msg
+        .channel_id
+        .say(&ctx, format!("{} SHUT!", msg.author.mention()))
+        .await
+        .unwrap();
 
     tokio::time::sleep(Duration::from_secs(3)).await;
 
