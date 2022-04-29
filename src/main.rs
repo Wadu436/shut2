@@ -82,7 +82,7 @@ impl TypeMapKey for Settings {
 #[group]
 #[commands(toggle_channel)]
 #[only_in(guilds)]
-#[required_permissions(ADMINISTRATOR)]
+#[required_permissions(MANAGE_MESSAGES)]
 struct General;
 
 struct Handler;
@@ -117,7 +117,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN").expect("token");
     let mut client = Client::builder(
         token,
-        GatewayIntents::GUILDS | GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT,
+        GatewayIntents::GUILDS | GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT | GatewayIntents::GUILD_PRESENCES | GatewayIntents::GUILD_MEMBERS ,
     )
     .framework(framework)
     .event_handler(Handler)
